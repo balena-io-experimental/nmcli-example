@@ -1,0 +1,23 @@
+# base-image for python on any machine using a template variable,
+# see more about dockerfile templates here:http://docs.resin.io/pages/deployment/docker-templates
+FROM resin/%%RESIN_MACHINE_NAME%%-debian:stretch
+
+RUN apt-get update && \
+    apt-get install -yq network-manager && \
+    apt-get clean && \
+    rm -rf /var/lib/apt/lists/*
+
+# Disable NetworkManager in the app container, we only need the network-manager package above for nmcli in order to talk to the host OS NetworkManager.
+RUN systemctl disable NetworkManager.service 
+
+# Set our working directory
+WORKDIR /usr/src/app
+
+# This will copy all files in our root to the working  directory in the container
+COPY . ./
+
+# switch on systemd init system in container
+ENV INITSYSTEM on
+
+# main.py will run when container starts up on the device
+CMD ["sh", "network_script.sh"]
